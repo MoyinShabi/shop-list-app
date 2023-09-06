@@ -68,10 +68,19 @@ class _ShopListState extends State<ShopList> {
     });
   }
 
-  void _removeItem(ShopItem item) {
+  Future<void> _removeItem(ShopItem item) async {
+    final index = _groceryItems.indexOf(item);
     setState(() {
       _groceryItems.remove(item);
     });
+    final url = Uri.https('shop-list-app-9e729-default-rtdb.firebaseio.com',
+        'shop-list/${item.id}.json');
+    final response = await http.delete(url);
+    if (response.statusCode >= 400) {
+      setState(() {
+        _groceryItems.insert(index, item);
+      });
+    }
   }
 
   @override

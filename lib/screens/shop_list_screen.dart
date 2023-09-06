@@ -33,7 +33,13 @@ class _ShopListState extends State<ShopList> {
         _error = 'Could not fetch data. Please try again later.';
       });
     }
-    final shopList = json.decode(response.body) as Map<String, dynamic>;
+    if (response.body == 'null') {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+    final Map<String, dynamic> shopList = json.decode(response.body);
     final List<ShopItem> loadedItems = [];
     for (final item in shopList.entries) {
       final category = categories.entries

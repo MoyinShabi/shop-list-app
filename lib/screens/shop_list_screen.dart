@@ -15,7 +15,8 @@ class ShopList extends StatefulWidget {
 
 class _ShopListState extends State<ShopList> {
   List<ShopItem> _groceryItems = [];
-  var _isLoading = true;
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -27,6 +28,11 @@ class _ShopListState extends State<ShopList> {
     final url = Uri.https(
         'shop-list-app-9e729-default-rtdb.firebaseio.com', 'shop-list.json');
     final response = await http.get(url);
+    if (response.statusCode >= 400) {
+      setState(() {
+        _error = 'Could not fetch data. Please try again later.';
+      });
+    }
     final shopList = json.decode(response.body) as Map<String, dynamic>;
     final List<ShopItem> loadedItems = [];
     for (final item in shopList.entries) {
@@ -98,6 +104,12 @@ class _ShopListState extends State<ShopList> {
             ),
           ),
         ),
+      );
+    }
+
+    if (_error != null) {
+      content = Center(
+        child: Text(_error!),
       );
     }
 

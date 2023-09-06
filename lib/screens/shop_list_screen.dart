@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shop_list_app/data/categories.dart';
+
 import 'package:shop_list_app/models/shop_item.dart';
-import 'package:shop_list_app/screens/new_item_sreen.dart';
+import 'package:shop_list_app/screens/new_item_screen.dart';
 
 class ShopList extends StatefulWidget {
   const ShopList({super.key});
@@ -10,7 +14,40 @@ class ShopList extends StatefulWidget {
 }
 
 class _ShopListState extends State<ShopList> {
-  final List<ShopItem> _groceryItems = [];
+  List<ShopItem> _groceryItems = [];
+  var _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
+  Future<void> _loadItems() async {
+    final url = Uri.https(
+        'shop-list-app-9e729-default-rtdb.firebaseio.com', 'shop-list.json');
+    final response = await http.get(url);
+    final shopList = json.decode(response.body) as Map<String, dynamic>;
+    final List<ShopItem> loadedItems = [];
+    for (final item in shopList.entries) {
+      final category = categories.entries
+          .firstWhere(
+              (catItem) => catItem.value.title == item.value['category'])
+          .value;
+      loadedItems.add(
+        ShopItem(
+          id: item.key,
+          name: item.value['name'],
+          quantity: item.value['quantity'],
+          category: category,
+        ),
+      );
+    }
+    setState(() {
+      _groceryItems = loadedItems;
+      _isLoading = false;
+    });
+  }
 
   void _addItem() async {
     final newItem = await Navigator.of(context).push<ShopItem>(
@@ -18,10 +55,7 @@ class _ShopListState extends State<ShopList> {
         builder: (ctx) => const NewItem(),
       ),
     );
-
-    if (newItem == null) {
-      return;
-    }
+    if (newItem == null) return;
 
     setState(() {
       _groceryItems.add(newItem);
@@ -37,6 +71,12 @@ class _ShopListState extends State<ShopList> {
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(child: Text('No items added yet.'));
+
+    if (_isLoading) {
+      content = const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     if (_groceryItems.isNotEmpty) {
       content = ListView.builder(

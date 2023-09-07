@@ -27,7 +27,15 @@ class _ShopListState extends State<ShopList> {
   Future<void> _loadItems() async {
     final url = Uri.https(
         'shop-list-app-9e729-default-rtdb.firebaseio.com', 'shop-list.json');
-    final response = await http.get(url);
+    http.Response response;
+    try {
+      response = await http.get(url);
+    } catch (e) {
+      setState(() {
+        _error = 'Something went wrong. Please try again later.';
+      });
+      return;
+    }
     if (response.statusCode >= 400) {
       setState(() {
         _error = 'Could not fetch data. Please try again later.';
@@ -61,7 +69,7 @@ class _ShopListState extends State<ShopList> {
     });
   }
 
-  void _addItem() async {
+  Future<void> _addItem() async {
     final newItem = await Navigator.of(context).push<ShopItem>(
       MaterialPageRoute(
         builder: (ctx) => const NewItem(),
@@ -72,6 +80,7 @@ class _ShopListState extends State<ShopList> {
     setState(() {
       _groceryItems.add(newItem);
     });
+    print(_groceryItems);
   }
 
   Future<void> _removeItem(ShopItem item) async {

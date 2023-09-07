@@ -44,8 +44,7 @@ class _NewItemState extends State<NewItem> {
           },
         ),
       );
-      /*  print(response.body);
-      print(response.statusCode); */
+
       final responseData = json.decode(response.body);
       if (!context.mounted) return;
       Navigator.of(context).pop(

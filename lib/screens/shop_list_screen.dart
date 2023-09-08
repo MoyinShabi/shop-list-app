@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:ionicons/ionicons.dart';
 import 'package:shop_list_app/data/categories.dart';
 
 import 'package:shop_list_app/models/shop_item.dart';
@@ -80,7 +81,6 @@ class _ShopListState extends State<ShopList> {
     setState(() {
       _groceryItems.add(newItem);
     });
-    print(_groceryItems);
   }
 
   Future<void> _removeItem(ShopItem item) async {
@@ -95,12 +95,25 @@ class _ShopListState extends State<ShopList> {
       setState(() {
         _groceryItems.insert(index, item);
       });
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Error deleting item!',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+          duration: const Duration(seconds: 1),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = const Center(child: Text('No items added yet.'));
+    Widget content = const Center(
+      child: Text('No items added yet.'),
+    );
 
     if (_isLoading) {
       content = const Center(
@@ -116,6 +129,17 @@ class _ShopListState extends State<ShopList> {
             _removeItem(_groceryItems[index]);
           },
           key: ValueKey(_groceryItems[index].id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: Colors.grey,
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 18.0),
+            child: const Icon(
+              Ionicons.trash_outline,
+              color: Colors.white,
+              size: 21,
+            ),
+          ),
           child: ListTile(
             title: Text(_groceryItems[index].name),
             leading: Container(
